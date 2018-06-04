@@ -3,9 +3,11 @@ import pandas as pd
 
 from tf_finance.util import *
 
+default_codes = ['KODEX 200', 'KODEX S&P500 Futures(H)', 'KODEX Gold Futures(H)', 'KOSEF KTB',
+                 'KOSEF USD Futures', 'KODEX KRW CASH']
 
 class PriceManager:
-    def __init__(self, names=['KODEX 200']):
+    def __init__(self, names=default_codes):
         self._etf_code = get_etf_code()
 
         self._price = {name: self.load_from_web_csv(name) for name in names}
@@ -41,9 +43,15 @@ class PriceManager:
         for name, price in self._price.items():
             self.save_price(name, price)
 
-    def daily_price(self, names=['KODEX 200']):
-        day = self._price[names[0]]['날짜']
-        daily_price_list = [self._price[name]['종가'].rename(name) for name in names]
+    def daily_price(self, names=None):
+        if names is not None:
+            day = self._price[names[0]]['날짜']
+            daily_price_list = [self._price[name]['종가'].rename(name) for name in names]
+        else:
+            new_names = list(self._price.keys())
+            day = self._price[new_names[0]]['날짜']
+            daily_price_list = [self._price[name]['종가'].rename(name) for name in new_names]
+
         merged = pd.concat([day] + daily_price_list, axis=1)
 
         format = '%Y.%m.%d'
